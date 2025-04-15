@@ -1,10 +1,14 @@
 from fastapi import FastAPI
+from app.core.database import Base, engine
+from app.api import api_versions
 
 app = FastAPI(title="Course API", version="1.0.0")
 
-@app.get("/")
-async def root():
-  return {"message": "Hello World"}
+Base.metadata.create_all(bind=engine)
+
+for version, router in api_versions.items():
+    app.include_router(router)
+
 
 @app.get("/health", tags=["Meta"])
 def health():
