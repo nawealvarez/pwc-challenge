@@ -31,14 +31,14 @@ class TeacherService:
 
     def create_teacher(self, teacher: TeacherIn) -> TeacherOut:
         """Create a new teacher."""
-        logger.info(f"Creating teacher: {teacher.first_name} {teacher.last_name}")
+        logger.info(f"Creating teacher: {teacher.name}")
         
         try:
             db_teacher = self.repo.create(teacher.model_dump())
             logger.info(f"Teacher created successfully with ID: {db_teacher.id}")
             return db_teacher
         except Exception as e:
-            logger.error(f"Failed to create teacher: {teacher.first_name} {teacher.last_name}")
+            logger.error(f"Failed to create teacher: {teacher.name}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Could not create teacher. Please check the data provided."
@@ -52,7 +52,7 @@ class TeacherService:
         self.get_teacher(teacher_id)
         
         try:
-            updated_teacher = self.repo.update(teacher_id, teacher.model_dump())
+            updated_teacher = self.repo.update(teacher_id, teacher)
             logger.info(f"Teacher updated successfully: {teacher_id}")
             return updated_teacher
         except Exception as e:
