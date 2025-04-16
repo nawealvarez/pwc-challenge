@@ -4,8 +4,6 @@ from datetime import datetime
 class EnrollmentBase(BaseModel):
     student_id: int
     course_id: int
-    status: str = "active"
-
 
 class EnrollmentIn(EnrollmentBase):
     pass

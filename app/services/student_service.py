@@ -1,31 +1,32 @@
 from app.schemas.pagination import PaginatedResponse, PaginationParams
-from fastapi import HTTPException, status
-from typing import List, Optional
-import logging
-
+from app.utils.logging import log_with_correlation
+from fastapi import HTTPException, status, Request
+from typing import Optional
 from app.repositories.student_repository import StudentRepository
 from app.schemas.student import StudentFilters, StudentIn, StudentOut
-
-# Configure logging
-logger = logging.getLogger(__name__)
 
 class StudentService:
   def __init__(self, db):
     self.repo = StudentRepository(db)
 
-  def get_student(self, student_id: int) -> StudentOut:
+  def get_student(self, student_id: int, request: Optional[Request] = None) -> StudentOut:
     """Get a student by ID."""
-    logger.info(f"Fetching student with ID: {student_id}")
+    log_with_correlation("info", f"Fetching student with ID: {student_id}", request)
     student = self.repo.get_by_id(student_id)
     if not student:
-        logger.warning(f"Student with ID {student_id} not found")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Student with id {student_id} not found"
-        )
+      log_with_correlation("warning", f"Student with ID {student_id} not found", request)
+      raise HTTPException(
+          status_code=status.HTTP_404_NOT_FOUND,
+          detail=f"Student with id {student_id} not found"
+      )
     return student
 
-  def list_students(self, pagination: PaginationParams, filters: Optional[StudentFilters] = None) -> PaginatedResponse[StudentOut]:
+  def list_students(
+      self, 
+      pagination: PaginationParams, 
+      filters: Optional[StudentFilters] = None, 
+      request: Optional[Request] = None
+    ) -> PaginatedResponse[StudentOut]:
     """Get all students paginated with optional filtering.
 
     Args:
@@ -36,7 +37,7 @@ class StudentService:
       filters: Optional filters to apply to the query
         - course_id: Filter by Course ID
     """
-    logger.info(f"Fetching students with pagination: {pagination.page}, {pagination.size}")
+    log_with_correlation("info", f"Fetching students with pagination: {pagination.page}, {pagination.size}", request)
     total, total_pages, page, items = self.repo.get_all(pagination, filters)
     return PaginatedResponse[StudentOut](
       total=total,
@@ -46,50 +47,49 @@ class StudentService:
       items=[StudentOut.from_orm(s) for s in items]
     )
 
-  def create_student(self, student: StudentIn) -> StudentOut:
+  def create_student(self, student: StudentIn, request: Optional[Request] = None) -> StudentOut:
     """Create a new student."""
-    logger.info(f"Creating student: {student.name}")
+    log_with_correlation("info", f"Creating student: {student.name}", request)
     
     try:
-        db_student = self.repo.create(student.model_dump())
-        logger.info(f"Student created successfully with ID: {db_student.id}")
+        db_student = self.repo.create(student)
+        log_with_correlation("info", f"Student created successfully with ID: {db_student.id}", request)
         return db_student
     except Exception as e:
-        logger.error(f"Failed to create student: {student.name}")
+        log_with_correlation("error", f"Failed to create student: {student.name}", request)
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Could not create student. Please check the data provided."
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while creating the student"
         )
 
 
-  def update_student(self, student_id: int, student: StudentIn) -> StudentOut:
+  def update_student(self, student_id: int, student: StudentIn, request: Optional[Request] = None) -> StudentOut:
     """Update a student."""
-    logger.info(f"Updating student with ID: {student_id}")
+    log_with_correlation("info", f"Updating student with ID: {student_id}", request)
     
     self.get_student(student_id)
     
     try:
-        updated_student = self.repo.update(student_id, student)
-        logger.info(f"Student updated successfully: {student_id}")
-        return updated_student
+      updated_student = self.repo.update(student_id, student)
+      log_with_correlation("info", f"Student updated successfully: {student_id}", request)
+      return updated_student
     except Exception as e:
-        logger.error(f"Failed to update student: {student_id}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Could not update student. Please check the data provided."
-        )
+      log_with_correlation("error", f"Failed to update student: {student_id}", request)
+      raise HTTPException(
+          status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+          detail="An unexpected error occurred while updating the student"
+      )
 
-  def delete_student(self, student_id: int) -> None:
+  def delete_student(self, student_id: int, request: Optional[Request] = None) -> None:
     """Delete a student."""
-    logger.info(f"Deleting student with ID: {student_id}")
+    log_with_correlation("info", f"Deleting student with ID: {student_id}", request)
     
     self.get_student(student_id)
     
     if not self.repo.delete(student_id):
-        logger.error(f"Failed to delete student: {student_id}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete student"
-        )
-    
-    logger.info(f"Student deleted successfully: {student_id}")
+      log_with_correlation("error", f"Failed to delete student: {student_id}", request)
+      raise HTTPException(
+          status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+          detail="Failed to delete student"
+      )
+    log_with_correlation("info", f"Student deleted successfully: {student_id}", request)

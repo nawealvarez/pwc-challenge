@@ -1,33 +1,29 @@
 from app.schemas.pagination import PaginatedResponse, PaginationParams
-from fastapi import HTTPException, status
-from typing import List
-import logging
-
+from app.utils.logging import log_with_correlation
+from fastapi import HTTPException, status, Request
+from typing import Optional
 from app.repositories.teacher_repository import TeacherRepository
 from app.schemas.teacher import TeacherIn, TeacherOut
-
-# Configure logging
-logger = logging.getLogger(__name__)
 
 class TeacherService:
     def __init__(self, db):
         self.repo = TeacherRepository(db)
 
-    def get_teacher(self, teacher_id: int) -> TeacherOut:
+    def get_teacher(self, teacher_id: int, request: Optional[Request] = None) -> TeacherOut:
         """Get a teacher by ID."""
-        logger.info(f"Fetching teacher with ID: {teacher_id}")
+        log_with_correlation("info", f"Fetching teacher with ID: {teacher_id}", request)
         teacher = self.repo.get_by_id(teacher_id)
         if not teacher:
-            logger.warning(f"Teacher with ID {teacher_id} not found")
+            log_with_correlation("warning", f"Teacher with ID {teacher_id} not found", request)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Teacher with id {teacher_id} not found"
             )
         return teacher
 
-    def list_teachers(self, pagination: PaginationParams) -> PaginatedResponse[TeacherOut]:
+    def list_teachers(self, pagination: PaginationParams, request: Optional[Request] = None) -> PaginatedResponse[TeacherOut]:
         """Get all teachers with optional filtering."""
-        logger.info(f"Fetching teachers with pagination: {pagination.page}, {pagination.size}")
+        log_with_correlation("info", f"Fetching teachers with pagination: {pagination.page}, {pagination.size}", request)
         total, total_pages, page, items =  self.repo.get_all(pagination)
         return PaginatedResponse[TeacherOut](
             total=total,
@@ -37,50 +33,50 @@ class TeacherService:
             items=[TeacherOut.from_orm(s) for s in items]
         )
 
-    def create_teacher(self, teacher: TeacherIn) -> TeacherOut:
+    def create_teacher(self, teacher: TeacherIn, request: Optional[Request] = None) -> TeacherOut:
         """Create a new teacher."""
-        logger.info(f"Creating teacher: {teacher.name}")
+        log_with_correlation("info", f"Creating teacher: {teacher.name}", request)
         
         try:
             db_teacher = self.repo.create(teacher.model_dump())
-            logger.info(f"Teacher created successfully with ID: {db_teacher.id}")
+            log_with_correlation("info", f"Teacher created successfully with ID: {db_teacher.id}", request)
             return db_teacher
         except Exception as e:
-            logger.error(f"Failed to create teacher: {teacher.name}")
+            log_with_correlation("error", f"Failed to create teacher: {teacher.name}", request)
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Could not create teacher. Please check the data provided."
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An unexpected error occurred while creating the teacher"
             )
 
 
-    def update_teacher(self, teacher_id: int, teacher: TeacherIn) -> TeacherOut:
+    def update_teacher(self, teacher_id: int, teacher: TeacherIn, request: Optional[Request] = None) -> TeacherOut:
         """Update a teacher."""
-        logger.info(f"Updating teacher with ID: {teacher_id}")
+        log_with_correlation("info", f"Updating teacher with ID: {teacher_id}", request)
         
         self.get_teacher(teacher_id)
         
         try:
             updated_teacher = self.repo.update(teacher_id, teacher)
-            logger.info(f"Teacher updated successfully: {teacher_id}")
+            log_with_correlation("info", f"Teacher updated successfully: {teacher_id}", request)
             return updated_teacher
         except Exception as e:
-            logger.error(f"Failed to update teacher: {teacher_id}")
+            log_with_correlation("error", f"Failed to update teacher: {teacher_id}", request)
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Could not update teacher. Please check the data provided."
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An unexpected error occurred while updating the teacher"
             )
 
-    def delete_teacher(self, teacher_id: int) -> None:
+    def delete_teacher(self, teacher_id: int, request: Optional[Request] = None) -> None:
         """Delete a teacher."""
-        logger.info(f"Deleting teacher with ID: {teacher_id}")
+        log_with_correlation("info", f"Deleting teacher with ID: {teacher_id}", request)
         
         self.get_teacher(teacher_id)
         
         if not self.repo.delete(teacher_id):
-            logger.error(f"Failed to delete teacher: {teacher_id}")
+            log_with_correlation("error", f"Failed to delete teacher: {teacher_id}", request)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete teacher"
             )
         
-        logger.info(f"Teacher deleted successfully: {teacher_id}")
+        log_with_correlation("info", f"Teacher deleted successfully: {teacher_id}", request)

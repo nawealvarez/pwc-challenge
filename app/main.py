@@ -1,8 +1,14 @@
+from app.middlewares.correlation import CorrelationIDMiddleware
+from app.middlewares.cors import get_cors_config
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import Base, engine
 from app.api import api_versions
 
 app = FastAPI(title="Course API", version="1.0.0")
+
+app.add_middleware(CorrelationIDMiddleware)
+app.add_middleware(CORSMiddleware, **get_cors_config())
 
 Base.metadata.create_all(bind=engine)
 
