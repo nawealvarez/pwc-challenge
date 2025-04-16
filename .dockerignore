@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+.github
+
+
+# Python
+__pycache__/
+**/__pycache__/
+MANIFEST
+.pytest_cache/
+htmlcov/
+.vscode/
+
+# Docker
+.docker/
+Dockerfile
+.dockerignore
+
+# Documentation
+docs/_build/
+/site
+
+# Local development
+*.log
+
+# Alembic
+alembic/versions/__pycache__/
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# OS specific
+.DS_Store
+Thumbs.db 

@@ -4,6 +4,8 @@ alembic
 uvicorn
 psycopg2-binary
 pydantic
+pytest
+httpx
 python-dotenv
 pydantic-settings
 pydantic[email]

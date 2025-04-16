@@ -42,7 +42,7 @@ class CourseService:
             pages=total_pages,
             page=page,
             size=pagination.size,
-            items=[CourseOut.from_orm(s) for s in items]
+            items=[CourseOut.model_validate(s) for s in items]
         )
 
     

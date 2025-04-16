@@ -44,7 +44,7 @@ class StudentService:
       pages=total_pages,
       page=page,
       size=pagination.size,
-      items=[StudentOut.from_orm(s) for s in items]
+      items=[StudentOut.model_validate(s) for s in items]
     )
 
   def create_student(self, student: StudentIn, request: Optional[Request] = None) -> StudentOut:

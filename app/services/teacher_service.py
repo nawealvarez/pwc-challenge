@@ -30,7 +30,7 @@ class TeacherService:
             pages=total_pages,
             page=page,
             size=pagination.size,
-            items=[TeacherOut.from_orm(s) for s in items]
+            items=[TeacherOut.model_validate(s) for s in items]
         )
 
     def create_teacher(self, teacher: TeacherIn, request: Optional[Request] = None) -> TeacherOut:

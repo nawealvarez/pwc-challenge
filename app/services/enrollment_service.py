@@ -18,10 +18,10 @@ class EnrollmentService:
   def create_enrollment(self, enrollment: EnrollmentIn, request: Optional[Request] = None) -> EnrollmentOut:
     """Enroll a student in a course."""
     log_with_correlation("info", f"Enrolling student {enrollment.student_id} in course {enrollment.course_id}", request)
-    self.student_service.get_student(self.db, enrollment.student_id)
-    self.course_service.create_course(self.db, enrollment.course_id)
+    self.student_service.get_student(enrollment.student_id)
+    self.course_service.create_course(enrollment.course_id)
 
-    existing_enrollments = self.enrollment_repo.get_by_course_and_student(self.db, enrollment.course_id, enrollment.student_id)
+    existing_enrollments = self.enrollment_repo.get_by_course_and_student(enrollment.course_id, enrollment.student_id)
     if existing_enrollments:
       log_with_correlation("warning", f"Student {enrollment.student_id} already enrolled in course {enrollment.course_id}", request)
       raise HTTPException(
@@ -30,7 +30,7 @@ class EnrollmentService:
       )
     
     try:
-      db_enrollment = self.enrollment_repo.create(self.db, enrollment)
+      db_enrollment = self.enrollment_repo.create(enrollment)
       log_with_correlation("info", f"Enrollment created successfully with ID: {db_enrollment.id}", request)
       return db_enrollment
     except Exception as e:
@@ -43,7 +43,7 @@ class EnrollmentService:
   def delete_enrollment(self, enrollment: EnrollmentIn, request: Optional[Request] = None) -> None:
     """Remove student from course."""
     log_with_correlation("info", f"Removing student {enrollment.student_id} from course {enrollment.course_id}", request)
-    existing_enrollment = self.enrollment_repo.get_by_course_and_student(self.db, enrollment.course_id, enrollment.student_id)
+    existing_enrollment = self.enrollment_repo.get_by_course_and_student(enrollment.course_id, enrollment.student_id)
 
     if not existing_enrollment:
       log_with_correlation("warning", f"Enrollment not found for student {enrollment.student_id} in course {enrollment.course_id}", request)
@@ -52,7 +52,7 @@ class EnrollmentService:
         detail="Enrollment not found"
       )
     
-    if not self.enrollment_repo.delete(self.db, existing_enrollment.id):
+    if not self.enrollment_repo.delete(existing_enrollment.id):
       log_with_correlation("error", f"Failed to delete enrollment: {existing_enrollment.id}", request)
       raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
