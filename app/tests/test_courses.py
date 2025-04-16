@@ -1,4 +1,3 @@
-# === tests/services/test_course_service.py ===
 from datetime import datetime, timezone
 from app.models.teacher import Teacher
 import pytest

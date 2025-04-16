@@ -17,13 +17,12 @@ class EnrollmentRepository:
         self.db.refresh(db_enrollment)
         return db_enrollment
     
-    def delete(self, enrollment_id: int) -> bool:
+    def delete(self, enrollment: Enrollment) -> bool:
         """Delete an enrollment."""
-        db_enrollment = self.get_by_id(enrollment_id)
-        if db_enrollment:
-            db_enrollment.deleted_at = datetime.now(timezone.utc)
+        if enrollment:
+            enrollment.deleted_at = datetime.now(timezone.utc)
             self.db.commit()
-            self.db.refresh(db_enrollment)
+            self.db.refresh(enrollment)
             return True
         return False
 

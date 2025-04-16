@@ -1,4 +1,3 @@
-# === tests/services/test_teacher_service.py ===
 from datetime import datetime, timezone
 import pytest
 from unittest.mock import MagicMock

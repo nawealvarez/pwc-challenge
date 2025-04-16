@@ -11,7 +11,7 @@ from app.core.database import Base
 
 config = context.config
 
-sqlalchemy_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/coursedb")
+sqlalchemy_url = os.getenv("DATABASE_URL", "postgresql://postgres.rsarhhaqrbvaaqyxzxoe:eKyOTEVgKdlDzubi@aws-0-us-east-1.pooler.supabase.com:5432/postgres")
 config.set_main_option("sqlalchemy.url", sqlalchemy_url)
 
 if config.config_file_name is not None:

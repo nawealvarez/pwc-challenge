@@ -24,7 +24,7 @@ class TeacherRepository:
 
     def create(self, teacher: TeacherIn) -> Teacher:
         """Create a new teacher."""
-        db_teacher = Teacher(**teacher.dict())
+        db_teacher = Teacher(**teacher.model_dump())
         self.db.add(db_teacher)
         self.db.commit()
         self.db.refresh(db_teacher)

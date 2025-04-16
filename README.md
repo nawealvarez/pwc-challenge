@@ -37,7 +37,7 @@ The application follows a clean architecture pattern:
    cd pwc-challenge
    ```
 
-2. Create a `.env` file with your database connection string:
+2. Create a `.env` file with your database connection string if you want to use other database, otherwise it will use the default one:
 
    ```
    DATABASE_URL=postgresql://username:password@host:port/database
@@ -90,6 +90,12 @@ docker compose exec api alembic downgrade -1
 
 ```bash
 docker compose down
+```
+
+### Running Test
+
+```bash
+docker-compose run --rm -e PYTHONPATH=/app api pytest
 ```
 
 ## API Documentation

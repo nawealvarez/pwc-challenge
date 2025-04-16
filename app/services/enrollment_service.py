@@ -19,7 +19,7 @@ class EnrollmentService:
     """Enroll a student in a course."""
     log_with_correlation("info", f"Enrolling student {enrollment.student_id} in course {enrollment.course_id}", request)
     self.student_service.get_student(enrollment.student_id)
-    self.course_service.create_course(enrollment.course_id)
+    self.course_service.get_course(enrollment.course_id)
 
     existing_enrollments = self.enrollment_repo.get_by_course_and_student(enrollment.course_id, enrollment.student_id)
     if existing_enrollments:
@@ -52,7 +52,7 @@ class EnrollmentService:
         detail="Enrollment not found"
       )
     
-    if not self.enrollment_repo.delete(existing_enrollment.id):
+    if not self.enrollment_repo.delete(existing_enrollment):
       log_with_correlation("error", f"Failed to delete enrollment: {existing_enrollment.id}", request)
       raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

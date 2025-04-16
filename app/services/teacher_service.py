@@ -38,7 +38,7 @@ class TeacherService:
         log_with_correlation("info", f"Creating teacher: {teacher.name}", request)
         
         try:
-            db_teacher = self.repo.create(teacher.model_dump())
+            db_teacher = self.repo.create(teacher)
             log_with_correlation("info", f"Teacher created successfully with ID: {db_teacher.id}", request)
             return db_teacher
         except Exception as e:
