@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TypedDict
 from app.schemas.teacher import TeacherOut
 
 class CourseBase(BaseModel):
@@ -10,9 +10,8 @@ class CourseBase(BaseModel):
 class CourseIn(CourseBase):
     teacher_id: int
 
-class CourseFilters(BaseModel):
-    title: Optional[str] = None
-    teacher_id: Optional[int] = None
+class CourseFilters(TypedDict, total=False):
+    teacher_id: int
 
 class CourseOut(CourseBase):
     id: int

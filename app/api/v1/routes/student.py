@@ -1,9 +1,10 @@
+from app.schemas.pagination import PaginatedResponse, PaginationParams
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 from app.schemas.student import StudentIn, StudentOut
 from app.services.student_service import StudentService
 from app.core.database import get_db
-from typing import List, Optional
+from typing import Optional
 
 router = APIRouter()
 
@@ -18,19 +19,21 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
   return service.get_student(student_id)
 
 
-@router.get("/", response_model=List[StudentOut], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=PaginatedResponse[StudentOut], status_code=status.HTTP_200_OK)
 def list_students(
-  skip: int = Query(0, description="Number of records to skip"),
-  limit: int = Query(100, description="Number of records to return"),
+  page: int = Query(1, ge=1, description="Current page number"),
+  size: int = Query(10, ge=1, le=100, description="Number of records per page"),
+  search: Optional[str] = Query(None, description="Search by student name or email"),
   course_id: Optional[int] = Query(None, description="Filter by Course ID"),
   db: Session = Depends(get_db)
   ):
+  pagination = PaginationParams(page=page, size=size, search=search)
   filters = {}
   if course_id:
       filters["course_id"] = course_id
 
   service = StudentService(db)
-  return service.list_students(skip=skip, limit=limit, filters=filters)
+  return service.list_students(pagination=pagination, filters=filters)
 
 @router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_student(student_id: int, db: Session = Depends(get_db)):

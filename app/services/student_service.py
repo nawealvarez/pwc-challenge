@@ -1,9 +1,10 @@
+from app.schemas.pagination import PaginatedResponse, PaginationParams
 from fastapi import HTTPException, status
-from typing import List
+from typing import List, Optional
 import logging
 
 from app.repositories.student_repository import StudentRepository
-from app.schemas.student import StudentIn, StudentOut
+from app.schemas.student import StudentFilters, StudentIn, StudentOut
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -24,10 +25,17 @@ class StudentService:
         )
     return student
 
-  def list_students(self, skip: int = 0, limit: int = 100) -> List[StudentOut]:
+  def list_students(self, pagination: PaginationParams, filters: Optional[StudentFilters] = None) -> PaginatedResponse[StudentOut]:
     """Get all students with optional filtering."""
-    logger.info(f"Fetching students with skip={skip}, limit={limit}")
-    return self.repo.get_all(skip=skip, limit=limit)
+    logger.info(f"Fetching students with pagination: {pagination.page}, {pagination.size}")
+    total, total_pages, page, items = self.repo.get_all(pagination, filters)
+    return PaginatedResponse[StudentOut](
+      total=total,
+      pages=total_pages,
+      page=page,
+      size=pagination.size,
+      items=[StudentOut.from_orm(s) for s in items]
+    )
 
   def create_student(self, student: StudentIn) -> StudentOut:
     """Create a new student."""

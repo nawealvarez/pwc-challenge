@@ -1,10 +1,13 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, TypedDict
 from datetime import datetime
 
 class StudentBase(BaseModel):
     name: str
     email: Optional[EmailStr] = None
+
+class StudentFilters(TypedDict, total=False):
+    course_id: int
 
 class StudentIn(StudentBase):
     pass

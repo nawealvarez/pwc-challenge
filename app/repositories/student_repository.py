@@ -1,8 +1,11 @@
+from app.models.enrollment import Enrollment
+from app.schemas.pagination import PaginationParams
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Tuple
 from datetime import datetime, timezone
-from app.schemas.student import StudentIn
+from app.schemas.student import StudentFilters, StudentIn
 from app.models.student import Student
+from app.utils.pagination import paginate_query
 
 class StudentRepository:
     def __init__(self, db: Session):
@@ -13,11 +16,14 @@ class StudentRepository:
         query = self.db.query(Student)
         return query.filter(Student.deleted_at.is_(None)).filter(Student.id == student_id).first()
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> List[Student]:
+    def get_all(self, pagination: PaginationParams, filters: Optional[StudentFilters] = None) -> Tuple[int, int, int, List[Student]]:
         """Get all students"""
         query = self.db.query(Student).filter(Student.deleted_at.is_(None))
-        
-        return query.offset(skip).limit(limit).all()
+
+        if "course_id" in filters:
+            query = query.join(Enrollment).filter(Enrollment.course_id == filters["course_id"])
+
+        return paginate_query(query=query, model=Student, params=pagination, search_fields=["name"])
 
     def create(self, student: StudentIn) -> Student:
         """Create a new student."""
