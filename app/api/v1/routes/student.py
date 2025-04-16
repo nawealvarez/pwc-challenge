@@ -23,7 +23,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 def list_students(
   page: int = Query(1, ge=1, description="Current page number"),
   size: int = Query(10, ge=1, le=100, description="Number of records per page"),
-  search: Optional[str] = Query(None, description="Search by student name or email"),
+  search: Optional[str] = Query(None, description="Search by student name"),
   course_id: Optional[int] = Query(None, description="Filter by Course ID"),
   db: Session = Depends(get_db)
   ):

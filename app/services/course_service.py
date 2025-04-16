@@ -1,4 +1,5 @@
 from typing import Optional
+from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.services.teacher_service import TeacherService
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -24,20 +25,27 @@ class CourseService:
             )
         return course
 
-    def list_courses(self, skip: int = 0, limit: int = 100, filters: Optional[CourseFilters] = None) -> list[CourseOut]:
+    def list_courses(self, pagination: PaginationParams, filters: Optional[CourseFilters] = None) -> PaginatedResponse[CourseOut]:
         """Get all courses with optional filtering.
-
         Args:
-            skip: Number of records to skip (pagination)
-            limit: Maximum number of records to return (pagination)
+            pagination: Pagination parameters
+                - page: Current page number
+                - size: Number of records per page
+                - search: Search query
             filters: Optional filters to apply to the query
-                - title: Filter by course title
                 - teacher_id: Filter by teacher ID
         """
-        logger.info(f"Fetching all Courses with skip: {skip}, limit: {limit}")
+        logger.info(f"Fetching all Courses with pagination: {pagination.page}, {pagination.size}")
         if filters:
             logger.info(f"Applying filters: {filters}")
-        return self.course_repo.get_all(skip=skip, limit=limit, filters=filters)
+        total, total_pages, page, items = self.course_repo.get_all(pagination, filters)
+        return PaginatedResponse[CourseOut](
+            total=total,
+            pages=total_pages,
+            page=page,
+            size=pagination.size,
+            items=[CourseOut.from_orm(s) for s in items]
+        )
 
     
     def create_course(self, course: CourseIn) -> CourseOut:

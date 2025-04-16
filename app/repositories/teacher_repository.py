@@ -1,5 +1,7 @@
+from app.schemas.pagination import PaginationParams, PaginationResult
+from app.utils.pagination import paginate_query
 from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
+from typing import Optional
 from datetime import datetime, timezone
 from app.schemas.teacher import TeacherIn
 from app.models.teacher import Teacher
@@ -13,11 +15,12 @@ class TeacherRepository:
         query = self.db.query(Teacher)
         return query.filter(Teacher.deleted_at.is_(None)).filter(Teacher.id == teacher_id).first()
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> List[Teacher]:
+    def get_all(self, pagination: PaginationParams) -> PaginationResult[Teacher]:
         """Get all teachers"""
         query = self.db.query(Teacher).filter(Teacher.deleted_at.is_(None))
         
-        return query.offset(skip).limit(limit).all()
+        return paginate_query(query=query, model=Teacher, params=pagination, search_fields=["name"])
+
 
     def create(self, teacher: TeacherIn) -> Teacher:
         """Create a new teacher."""

@@ -1,5 +1,7 @@
+from app.schemas.pagination import PaginationParams, PaginationResult
+from app.utils.pagination import paginate_query
 from sqlalchemy.orm import Session, joinedload
-from typing import List, Optional
+from typing import Optional
 from app.schemas.course import CourseIn, CourseFilters
 from app.models.course import Course
 from datetime import datetime, timezone
@@ -13,16 +15,16 @@ class CourseRepository:
         query = self.db.query(Course).options(joinedload(Course.teacher))
         return query.filter(Course.deleted_at.is_(None)).filter(Course.id == course_id).first()
     
-    def get_all(self, skip: int = 0, limit: int = 100, filters: Optional[CourseFilters] = None) -> List[Course]:
+    def get_all(self, pagination: PaginationParams, filters: Optional[CourseFilters] = None) -> PaginationResult[Course]:
         """Get all Courses with teacher information - optional filtering."""
         query = self.db.query(Course).filter(Course.deleted_at.is_(None)).options(joinedload(Course.teacher))
-        
+
         if filters:
             for key, value in filters.items():
                 if hasattr(Course, key):
                     query = query.filter(getattr(Course, key) == value)
         
-        return query.offset(skip).limit(limit).all()
+        return paginate_query(query=query, model=Course, params=pagination, search_fields=["title", "description"])
 
     def create(self, course: CourseIn) -> Course:
         """Create a new Course."""

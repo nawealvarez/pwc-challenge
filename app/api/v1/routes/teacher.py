@@ -1,9 +1,10 @@
+from app.schemas.pagination import PaginatedResponse, PaginationParams
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 from app.schemas.teacher import TeacherIn, TeacherOut
 from app.services.teacher_service import TeacherService
 from app.core.database import get_db
-from typing import List, Optional
+from typing import Optional
 
 router = APIRouter()
 
@@ -17,15 +18,17 @@ def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
   service = TeacherService(db)
   return service.get_teacher(teacher_id)
 
-@router.get("/", response_model=List[TeacherOut], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=PaginatedResponse[TeacherOut], status_code=status.HTTP_200_OK)
 def list_teachers(
-  skip: int = Query(0, description="Number of records to skip"),
-  limit: int = Query(100, description="Number of records to return"),
+  page: int = Query(1, ge=1, description="Current page number"),
+  size: int = Query(10, ge=1, le=100, description="Number of records per page"),
+  search: Optional[str] = Query(None, description="Search by teacher name"),
   db: Session = Depends(get_db)
   ):
+  pagination = PaginationParams(page=page, size=size, search=search)
 
   service = TeacherService(db)
-  return service.list_teachers(skip=skip, limit=limit)
+  return service.list_teachers(pagination=pagination)
 
 @router.delete("/{teacher_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):

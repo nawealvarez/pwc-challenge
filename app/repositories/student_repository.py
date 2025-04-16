@@ -1,7 +1,7 @@
 from app.models.enrollment import Enrollment
-from app.schemas.pagination import PaginationParams
+from app.schemas.pagination import PaginationParams, PaginationResult
 from sqlalchemy.orm import Session
-from typing import List, Optional, Tuple
+from typing import Optional
 from datetime import datetime, timezone
 from app.schemas.student import StudentFilters, StudentIn
 from app.models.student import Student
@@ -16,7 +16,7 @@ class StudentRepository:
         query = self.db.query(Student)
         return query.filter(Student.deleted_at.is_(None)).filter(Student.id == student_id).first()
 
-    def get_all(self, pagination: PaginationParams, filters: Optional[StudentFilters] = None) -> Tuple[int, int, int, List[Student]]:
+    def get_all(self, pagination: PaginationParams, filters: Optional[StudentFilters] = None) -> PaginationResult[Student]:
         """Get all students"""
         query = self.db.query(Student).filter(Student.deleted_at.is_(None))
 

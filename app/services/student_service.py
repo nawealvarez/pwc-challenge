@@ -26,7 +26,16 @@ class StudentService:
     return student
 
   def list_students(self, pagination: PaginationParams, filters: Optional[StudentFilters] = None) -> PaginatedResponse[StudentOut]:
-    """Get all students with optional filtering."""
+    """Get all students paginated with optional filtering.
+
+    Args:
+      pagination: Pagination parameters
+        - page: Current page number
+        - size: Number of records per page
+        - search: Search query
+      filters: Optional filters to apply to the query
+        - course_id: Filter by Course ID
+    """
     logger.info(f"Fetching students with pagination: {pagination.page}, {pagination.size}")
     total, total_pages, page, items = self.repo.get_all(pagination, filters)
     return PaginatedResponse[StudentOut](

@@ -1,3 +1,4 @@
+from app.schemas.pagination import PaginatedResponse, PaginationParams
 from fastapi import HTTPException, status
 from typing import List
 import logging
@@ -24,10 +25,17 @@ class TeacherService:
             )
         return teacher
 
-    def list_teachers(self, skip: int = 0, limit: int = 100) -> List[TeacherOut]:
+    def list_teachers(self, pagination: PaginationParams) -> PaginatedResponse[TeacherOut]:
         """Get all teachers with optional filtering."""
-        logger.info(f"Fetching teachers with skip={skip}, limit={limit}")
-        return self.repo.get_all(skip=skip, limit=limit)
+        logger.info(f"Fetching teachers with pagination: {pagination.page}, {pagination.size}")
+        total, total_pages, page, items =  self.repo.get_all(pagination)
+        return PaginatedResponse[TeacherOut](
+            total=total,
+            pages=total_pages,
+            page=page,
+            size=pagination.size,
+            items=[TeacherOut.from_orm(s) for s in items]
+        )
 
     def create_teacher(self, teacher: TeacherIn) -> TeacherOut:
         """Create a new teacher."""

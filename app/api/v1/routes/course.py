@@ -1,3 +1,4 @@
+from app.schemas.pagination import PaginatedResponse, PaginationParams
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.schemas.course import CourseIn, CourseOut
@@ -20,22 +21,21 @@ def get_course(course_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Course not found")
     return course
 
-@router.get("/", response_model=List[CourseOut], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=PaginatedResponse[CourseOut], status_code=status.HTTP_200_OK)
 def list_courses(
-    skip: int = Query(0, description="Number of records to skip"),
-    limit: int = Query(100, description="Number of records to return"),
-    title: Optional[str] = Query(None, description="Filter by course title"),
+    page: int = Query(1, ge=1, description="Current page number"),
+    size: int = Query(10, ge=1, le=100, description="Number of records per page"),
+    search: Optional[str] = Query(None, description="Search by course name or description"),
     teacher_id: Optional[int] = Query(None, description="Filter by teacher ID"),
     db: Session = Depends(get_db)
     ):
+    pagination = PaginationParams(page=page, size=size, search=search)
     filters = {}
-    if title:
-        filters["title"] = title
     if teacher_id:
         filters["teacher_id"] = teacher_id
 
     service = CourseService(db)
-    return service.list_courses(skip=skip, limit=limit, filters=filters)
+    return service.list_courses(pagination=pagination, filters=filters)
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_course(course_id: int, db: Session = Depends(get_db)):

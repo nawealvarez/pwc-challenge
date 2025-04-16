@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, List, Optional
+from typing import Generic, NamedTuple, TypeVar, List, Optional
 from pydantic import BaseModel
 
 T = TypeVar("T")
@@ -11,6 +11,11 @@ class PaginationParams(BaseModel):
   size: int = 10
   search: Optional[str] = None
 
+class PaginationResult(NamedTuple, Generic[T]):
+    total: int
+    pages: int
+    page: int
+    items: List[T]
 
 class PaginatedResponse(BaseModel, Generic[T]):
   """
